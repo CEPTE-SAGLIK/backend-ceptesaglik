@@ -147,10 +147,55 @@ namespace HealthApp.Business.Services
                 var newSchedule = new VaccineSchedule { Id = Guid.NewGuid(), ChildId = childId, Period = "Manuel Giriş", ScheduledDate = administeredDate, CreatedAt = DateTime.Now };
                 await _unitOfWork.GetRepository<VaccineSchedule>().AddAsync(newSchedule);
 
-                bool isCompleted = administeredDate <= DateTime.Now;
+                bool isCompleted = administeredDate.Date <= DateTime.Now.Date;
                 var newVaccine = new Vaccine { Id = Guid.NewGuid(), VaccineScheduleId = newSchedule.Id, ChildId = childId, Name = name, Date = administeredDate, Dose = "1. Doz", Status = isCompleted ? VaccineStatus.Completed : VaccineStatus.Pending, CompletedDate = isCompleted ? administeredDate : null };
 
                 await _unitOfWork.GetRepository<Vaccine>().AddAsync(newVaccine);
+                await _unitOfWork.SaveChangesAsync();
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex) { return Result<bool>.Failure(ex.Message); }
+        }
+
+        public async Task<Result<bool>> DeleteScheduleAsync(Guid childId, Guid scheduleId)
+        {
+            try
+            {
+                var child = await _childRepository.GetWithVaccineScheduleAsync(childId);
+                if (child == null) return Result<bool>.Failure("Çocuk bulunamadı.");
+
+                var schedule = child.VaccineSchedules.FirstOrDefault(s => s.Id == scheduleId);
+                if (schedule == null) return Result<bool>.Failure("Takvim dönemi bulunamadı.");
+
+                var vaccineRepo = _unitOfWork.GetRepository<Vaccine>();
+                foreach (var vaccine in (schedule.Vaccines ?? new List<Vaccine>()).ToList())
+                    await vaccineRepo.DeleteAsync(vaccine);
+
+                var scheduleRepo = _unitOfWork.GetRepository<VaccineSchedule>();
+                await scheduleRepo.DeleteAsync(schedule);
+                await _unitOfWork.SaveChangesAsync();
+                return Result<bool>.Success(true);
+            }
+            catch (Exception ex) { return Result<bool>.Failure(ex.Message); }
+        }
+
+        public async Task<Result<bool>> AddVaccineToScheduleAsync(Guid childId, Guid scheduleId, string name, string dose, string status, DateTime date)
+        {
+            try
+            {
+                Enum.TryParse<VaccineStatus>(status, true, out var vaccineStatus);
+                var vaccine = new Vaccine
+                {
+                    Id = Guid.NewGuid(),
+                    VaccineScheduleId = scheduleId,
+                    ChildId = childId,
+                    Name = name,
+                    Date = date,
+                    Dose = dose,
+                    Status = vaccineStatus,
+                    CompletedDate = vaccineStatus == VaccineStatus.Completed ? date : null
+                };
+                await _unitOfWork.GetRepository<Vaccine>().AddAsync(vaccine);
                 await _unitOfWork.SaveChangesAsync();
                 return Result<bool>.Success(true);
             }
