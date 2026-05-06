@@ -1,0 +1,16 @@
+## Visual Studio
+.vs/
+*.user
+*.suo
+
+## Build sonuçları
+bin/
+obj/
+
+## NuGet
+*.nupkg
+packages/
+
+## OS dosyaları
+Thumbs.db
+.DS_Store
