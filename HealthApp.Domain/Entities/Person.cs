@@ -18,5 +18,7 @@ namespace HealthApp.Domain.Entities
         public List<string> Allergies { get; set; } = new List<string>();
 
         public User User { get; set; } = null!; // foreign key relationship to User entity
+
+        public virtual ICollection<Vaccine> Vaccines { get; set; } = new List<Vaccine>();
     }
 }
