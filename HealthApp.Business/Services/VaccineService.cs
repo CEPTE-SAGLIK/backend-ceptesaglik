@@ -49,7 +49,7 @@ namespace HealthApp.Business.Services
                     Status = (VaccineStatus)dto.Status,
                     CreatedAt = DateTime.Now,
                     VaccineScheduleId = null,
-                    Dose = "1. Doz"
+                    Dose = !string.IsNullOrWhiteSpace(dto.Dose) ? dto.Dose : "1. Doz"
                 };
 
                 // --- AKILLI ID EŞLEME MANTIĞI ---
@@ -87,7 +87,7 @@ namespace HealthApp.Business.Services
                     created.Id,
                     created.Name ?? "Bilinmeyen Aşı",
                     created.Date,
-                    "1. Doz",
+                    created.Dose ?? "1. Doz",
                     created.Status.ToString(),
                     created.Description ?? "",
                     null,

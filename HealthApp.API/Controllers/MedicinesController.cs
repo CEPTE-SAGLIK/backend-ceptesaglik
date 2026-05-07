@@ -30,41 +30,7 @@ namespace HealthApp.API.Controllers
             var result = await _medicineService.CreateMedicineAsync(dto);
             if (!result.IsSuccess) return BadRequest(result.ErrorMessage);
 
-            try
-            {
-                var medicineId = result.Data;
-                var medicine = await _unitOfWork.GetRepository<Medicine>().GetByIdAsync(medicineId);
-
-                if (medicine != null)
-                {
-                    // İlacın kendi tablosundaki Frequency kolonunu metin olarak kaydediyoruz.
-                    medicine.Frequency = dto.RepeatType.ToString();
-                    medicine.TimesPerDay = dto.TimesPerDay;
-
-                    var reminder = new Reminder
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = medicine.UserId,
-                        Title = medicine.Name,
-                        Description = "İlaç Hatırlatıcısı: " + (medicine.UsageInstructions ?? ""),
-                        Type = (ReminderType)0, // ReminderType.Medicine
-                        ReminderDate = DateTime.Now,
-                        MedicineId = medicine.Id,
-                        IsActive = true,
-                        CreatedAt = DateTime.Now,
-                        RepeatType = (RepeatType)dto.RepeatType
-                    };
-
-                    await _unitOfWork.GetRepository<Reminder>().AddAsync(reminder);
-                    await _unitOfWork.SaveChangesAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"--- [HATIRLATICI HATASI] Oluşturma başarısız: {ex.Message} ---");
-            }
-
-            return Ok(result.Data);
+            return Ok(new { id = result.Data });
         }
 
         [HttpDelete("{id}")]
@@ -106,10 +72,6 @@ namespace HealthApp.API.Controllers
                 var medicine = await _unitOfWork.GetRepository<Medicine>().GetByIdAsync(id);
                 if (medicine != null)
                 {
-                    // 2. İlacın Frequency bilgisini güncelle (İlaçlarım sekmesi için)
-                    medicine.Frequency = dto.RepeatType.ToString();
-                    medicine.TimesPerDay = dto.TimesPerDay;
-
                     // 3. Hatırlatıcıyı (Takvimi) güncelle
                     var remindersRepo = _unitOfWork.GetRepository<Reminder>();
                     var allReminders = await remindersRepo.GetAllAsync();

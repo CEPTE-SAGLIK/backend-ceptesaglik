@@ -21,6 +21,8 @@ namespace HealthApp.Business.DTOs
 
         public int Status { get; set; }
 
+        public string? Dose { get; set; }
+
         // Kullanıcının seçtiği sıklık bilgisi
         public string? Frequency { get; set; }
     }

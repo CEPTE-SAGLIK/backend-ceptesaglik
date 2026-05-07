@@ -55,13 +55,19 @@ namespace HealthApp.WebAPI.Controllers
                 {
                     if (!reminders.Any(r => r.MedicineId == med.Id))
                     {
+                        var today = DateTime.UtcNow.Date;
+                        var reminderTime = today;
+                        if (!string.IsNullOrEmpty(med.Time) && TimeSpan.TryParse(med.Time, out var ts))
+                            reminderTime = today.Add(ts);
+
                         reminders.Add(new Reminder
                         {
                             Id = med.Id,
                             Title = med.Name,
                             Description = med.UsageInstructions ?? "İlaç Hatırlatıcısı",
                             Type = ReminderType.Medicine,
-                            ReminderDate = med.CreatedAt,
+                            ReminderDate = reminderTime,
+                            RepeatType = RepeatType.Daily,
                             UserId = userId,
                             IsActive = true,
                             MedicineId = med.Id
