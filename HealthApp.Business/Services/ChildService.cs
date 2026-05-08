@@ -144,11 +144,23 @@ namespace HealthApp.Business.Services
         {
             try
             {
-                var newSchedule = new VaccineSchedule { Id = Guid.NewGuid(), ChildId = childId, Period = "Manuel Giriş", ScheduledDate = administeredDate, CreatedAt = DateTime.Now };
-                await _unitOfWork.GetRepository<VaccineSchedule>().AddAsync(newSchedule);
+                var allSchedules = await _unitOfWork.GetRepository<VaccineSchedule>().GetAllAsync();
+                var existingManuel = allSchedules
+                    .FirstOrDefault(s => s.ChildId == childId && s.Period == "Manuel Giriş");
 
-                bool isCompleted = administeredDate.Date <= DateTime.Now.Date;
-                var newVaccine = new Vaccine { Id = Guid.NewGuid(), VaccineScheduleId = newSchedule.Id, ChildId = childId, Name = name, Date = administeredDate, Dose = "1. Doz", Status = isCompleted ? VaccineStatus.Completed : VaccineStatus.Pending, CompletedDate = isCompleted ? administeredDate : null };
+                VaccineSchedule targetSchedule;
+                if (existingManuel != null)
+                {
+                    targetSchedule = existingManuel;
+                }
+                else
+                {
+                    targetSchedule = new VaccineSchedule { Id = Guid.NewGuid(), ChildId = childId, Period = "Manuel Giriş", ScheduledDate = administeredDate, CreatedAt = DateTime.Now };
+                    await _unitOfWork.GetRepository<VaccineSchedule>().AddAsync(targetSchedule);
+                }
+
+                bool isCompleted = administeredDate <= DateTime.Now;
+                var newVaccine = new Vaccine { Id = Guid.NewGuid(), VaccineScheduleId = targetSchedule.Id, ChildId = childId, Name = name, Date = administeredDate, Dose = "1. Doz", Status = isCompleted ? VaccineStatus.Completed : VaccineStatus.Pending, CompletedDate = isCompleted ? administeredDate : null };
 
                 await _unitOfWork.GetRepository<Vaccine>().AddAsync(newVaccine);
                 await _unitOfWork.SaveChangesAsync();
