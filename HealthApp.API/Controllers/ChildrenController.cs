@@ -81,13 +81,11 @@ namespace HealthApp.API.Controllers
             catch (Exception ex) { return BadRequest(ApiResponse<object>.Fail(ex.Message)); }
         }
 
-        [HttpDelete("{childId}/schedules/{scheduleId}")]
-        public async Task<IActionResult> DeleteSchedule(Guid childId, Guid scheduleId)
+        [HttpDelete("{id}/schedules/{scheduleId}")]
+        public async Task<IActionResult> DeleteSchedule(Guid id, Guid scheduleId)
         {
-            var result = await _childService.DeleteScheduleAsync(childId, scheduleId);
-            return result.IsSuccess
-                ? Ok(ApiResponse<bool>.Ok(true, "Takvim silindi."))
-                : BadRequest(ApiResponse<object>.Fail(result.ErrorMessage!));
+            var result = await _childService.DeleteScheduleAsync(id, scheduleId);
+            return result.IsSuccess ? Ok(ApiResponse<bool>.Ok(true, "Takvim silindi.")) : BadRequest(ApiResponse<object>.Fail(result.ErrorMessage!));
         }
 
         [HttpDelete("{id}")]
