@@ -8,9 +8,9 @@ namespace HealthApp.API.Controllers
     [ApiController]
     public class ChatController : ControllerBase
     {
-        private readonly GeminiService _geminiService;
+        private readonly IGeminiService _geminiService;
 
-        public ChatController(GeminiService geminiService)
+        public ChatController(IGeminiService geminiService)
         {
             _geminiService = geminiService;
         }

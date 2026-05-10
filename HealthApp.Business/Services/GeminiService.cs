@@ -2,20 +2,20 @@ using System.Text;
 using System.Text.Json;
 using HealthApp.Business.DTOs.Common;
 using HealthApp.Business.DTOs.Gemini;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace HealthApp.Business.Services
 {
-    public class GeminiService
+    public class GeminiService : IGeminiService
     {
         private readonly HttpClient _httpClient;
 
-        public GeminiService(HttpClient httpClient, IConfiguration configuration)
+        public GeminiService(HttpClient httpClient, IOptions<GeminiApiOptions> geminiOptions)
         {
             _httpClient = httpClient;
 
-            var apiKey = configuration["GeminiApi:ApiKey"];
-            var baseUrl = configuration["GeminiApi:BaseUrl"];
+            var apiKey = geminiOptions.Value.ApiKey;
+            var baseUrl = geminiOptions.Value.BaseUrl;
 
             if (string.IsNullOrWhiteSpace(apiKey))
             {
