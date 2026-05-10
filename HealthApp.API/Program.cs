@@ -43,6 +43,7 @@ builder.Services.AddScoped<MedicineService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<PersonService>();
 builder.Services.AddHttpClient<GeminiHealthService>();
+builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddScoped<AllergyService>();
 builder.Services.AddScoped<IllnessService>();
 builder.Services.AddScoped<NotificationService>();
