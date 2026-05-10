@@ -42,6 +42,7 @@ builder.Services.AddSingleton<VaccineScheduleGenerator>();
 builder.Services.AddScoped<MedicineService>();
 builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<PersonService>();
+// AI SERVICES (Gemini) - HttpClient ile typed client olarak kayit edilir.
 builder.Services.AddHttpClient<GeminiHealthService>();
 builder.Services.AddHttpClient<GeminiService>();
 builder.Services.AddScoped<AllergyService>();
