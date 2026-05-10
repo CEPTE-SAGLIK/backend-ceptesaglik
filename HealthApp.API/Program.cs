@@ -45,7 +45,7 @@ builder.Services.AddScoped<PersonService>();
 // AI SERVICES (Gemini) - HttpClient ile typed client olarak kayit edilir.
 builder.Services.AddHttpClient<GeminiHealthService>();
 builder.Services.Configure<GeminiApiOptions>(builder.Configuration.GetSection("GeminiApi"));
-builder.Services.AddScoped<IGeminiService, GeminiService>();
+// Typed HttpClient: IGeminiService için HttpClient fabrikası ile kayıt (ayrıca AddScoped ile çift kayıt yapma).
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 builder.Services.AddScoped<AllergyService>();
 builder.Services.AddScoped<IllnessService>();

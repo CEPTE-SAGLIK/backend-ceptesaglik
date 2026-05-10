@@ -14,8 +14,9 @@ namespace HealthApp.Business.Services
         {
             _httpClient = httpClient;
 
-            var apiKey = geminiOptions.Value.ApiKey;
-            var baseUrl = geminiOptions.Value.BaseUrl;
+            // Trim: JSON / env copy-paste ile gelen boşluklar API_KEY_INVALID tetikleyebilir.
+            var apiKey = geminiOptions.Value.ApiKey?.Trim() ?? string.Empty;
+            var baseUrl = geminiOptions.Value.BaseUrl?.Trim() ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -27,7 +28,17 @@ namespace HealthApp.Business.Services
                 throw new InvalidOperationException("Gemini Base Url bulunamadı.");
             }
 
-            _httpClient.BaseAddress = new Uri($"{baseUrl}?key={apiKey}");
+            // Google Generative Language API: anahtar genelde query string ?key=... ile verilir (header değil).
+            var keyInQuery = Uri.EscapeDataString(apiKey);
+            var requestUri = baseUrl.Contains('?', StringComparison.Ordinal)
+                ? $"{baseUrl}&key={keyInQuery}"
+                : $"{baseUrl}?key={keyInQuery}";
+            _httpClient.BaseAddress = new Uri(requestUri, UriKind.Absolute);
+
+#if DEBUG
+            var prefix = apiKey.Length >= 5 ? apiKey[..5] : apiKey;
+            Console.WriteLine($"[GeminiService] Okunan ApiKey ön eki: {prefix}... | BaseUrl (path): {baseUrl}");
+#endif
         }
 
         public async Task<Result<GeminiChatResponseDTO>> ProcessMessageAsync(string message)
