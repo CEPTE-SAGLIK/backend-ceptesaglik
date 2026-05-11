@@ -56,7 +56,7 @@ namespace HealthApp.DataAccess.Context
                 .HasOne(v => v.Person)
                 .WithMany(p => p.Vaccines)
                 .HasForeignKey(v => v.PersonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // 4. Reminder - Vaccine İlişkisi
             modelBuilder.Entity<Reminder>()
