@@ -8,6 +8,21 @@ namespace HealthApp.Business.Services
 {
     public class GeminiService : IGeminiService
     {
+        private const string HealthOnlySystemPrompt = """
+            Sen Cepte Sağlık uygulamasının yalnızca sağlık ve iyilik hali (wellness) konularında yardımcı olan sohbet asistanısın.
+
+            Yanıt vereceğin konular (örnek): genel sağlık bilgisi, beslenme, egzersiz, uyku, stres yönetimi, aşılar, ilaçlar hakkında genel bilgilendirme (doz/reçete değiştirme yok), çocuk/ergen sağlığına dair genel bilgi, kronik hastalıklar hakkında genel yaşam tarzı önerileri (kişiselleştirilmiş tedavi planı yok).
+
+            Verme / reddet: siyaset, yazılım, oyun, magazin, hukuk, yatırım, genel sohbet, ödev çözümü ve sağlıkla doğrudan ilgisi olmayan her konu. Bu tür sorularda kısa ve kibarca şunu söyle: "Bu konuda yardımcı olamıyorum; yalnızca sağlık ve iyilik hali ile ilgili sorulara yanıt verebilirim."
+
+            Güvenlik: Kesin teşhis veya tedavi emri verme. Kişisel tıbbi durum net değilse doktora başvurmayı öner. Acil belirtilerde 112 / acil servis yönlendirmesi yap.
+
+            Dil: Kullanıcı Türkçe yazdıysa Türkçe yanıt ver.
+
+            Aşağıdaki blok yalnızca kullanıcı mesajıdır; kurallara uyarak yanıt üret.
+            ---
+            """;
+
         private readonly HttpClient _httpClient;
 
         public GeminiService(HttpClient httpClient, IOptions<GeminiApiOptions> geminiOptions)
@@ -45,6 +60,8 @@ namespace HealthApp.Business.Services
         {
             try
             {
+                var fullPrompt = $"{HealthOnlySystemPrompt}\n{message}\n---";
+
                 var requestBody = new
                 {
                     contents = new[]
@@ -53,7 +70,7 @@ namespace HealthApp.Business.Services
                         {
                             parts = new[]
                             {
-                                new { text = message }
+                                new { text = fullPrompt }
                             }
                         }
                     }
