@@ -52,11 +52,13 @@ namespace HealthApp.DataAccess.Context
                 .OnDelete(DeleteBehavior.NoAction);
 
             // 3. Person - Vaccine İlişkisi (yetişkin aşıları)
+            // NoAction: Vaccines tablosunda VaccineSchedule üzerinden zaten cascade yolu
+            // olduğu için SQL Server çoklu cascade yoluna izin vermiyor.
             modelBuilder.Entity<Vaccine>()
                 .HasOne(v => v.Person)
                 .WithMany(p => p.Vaccines)
                 .HasForeignKey(v => v.PersonId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             // 4. Reminder - Vaccine İlişkisi
             modelBuilder.Entity<Reminder>()

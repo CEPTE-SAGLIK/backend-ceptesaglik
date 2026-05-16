@@ -44,12 +44,13 @@ namespace HealthApp.API.Controllers
         }
 
         // POST /api/Persons/profile — Flutter: POST /api/persons/profile (ilk profil oluşturma)
+        // Onboarding'de oluşturulan bu profil hesap sahibinin kendi profilidir.
         [HttpPost("profile")]
         public async Task<IActionResult> CreateProfile(PersonCreateDTO dto)
         {
             try
             {
-                var created = await _personService.CreatePersonAsync(dto, GetUserId());
+                var created = await _personService.CreatePersonAsync(dto, GetUserId(), isAccountOwner: true);
                 return Ok(created);
             }
             catch (Exception ex)
@@ -86,6 +87,20 @@ namespace HealthApp.API.Controllers
             {
                 var updated = await _personService.UpdatePersonAsync(id, dto, GetUserId());
                 return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeletePerson(Guid id)
+        {
+            try
+            {
+                await _personService.DeletePersonAsync(id, GetUserId());
+                return Ok(new { message = "Kişi başarıyla silindi." });
             }
             catch (Exception ex)
             {

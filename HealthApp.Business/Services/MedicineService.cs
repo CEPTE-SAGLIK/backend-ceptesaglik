@@ -103,7 +103,10 @@ namespace HealthApp.Business.Services
                     UsageInstructions = dto.UsageInstructions,
                     TimesPerDay = dto.TimesPerDay,
                     StartDate = dto.StartDate,
-                    EndDate = dto.EndDate
+                    EndDate = dto.EndDate,
+                    AudienceGroup = (AudienceGroup)dto.AudienceGroup,
+                    AudienceBirthDate = dto.AudienceBirthDate,
+                    PersonId = dto.PersonId
                 };
 
                 var repository = _unitOfWork.GetRepository<Medicine>();
@@ -141,6 +144,8 @@ namespace HealthApp.Business.Services
                 medicine.TimesPerDay = dto.TimesPerDay;
                 medicine.StartDate = dto.StartDate;
                 medicine.EndDate = dto.EndDate;
+                medicine.AudienceGroup = (AudienceGroup)dto.AudienceGroup;
+                medicine.AudienceBirthDate = dto.AudienceBirthDate;
                 medicine.UpdatedAt = DateTime.Now;
 
                 await repository.UpdateAsync(medicine);

@@ -23,6 +23,13 @@ namespace HealthApp.Domain.Entities
         public DateTime StartDate { get; set; } = DateTime.Now; // Başlangıç tarihi
         public DateTime? EndDate { get; set; } // Bitiş tarihi
 
+        // Hedef yaş grubu (yetişkin / yaşlı / çocuk) — AudienceGroup enum'u Reminder.cs içinde
+        public AudienceGroup AudienceGroup { get; set; } = AudienceGroup.Adult;
+        // Hedef kişinin doğum tarihi — yaş grubu bundan dinamik hesaplanır (snapshot değil).
+        public DateTime? AudienceBirthDate { get; set; }
+        // Hangi aile üyesine ait (null = hesap sahibinin kendisi)
+        public Guid? PersonId { get; set; }
+
 
         // İlişkiler
         public virtual User? User { get; set; }

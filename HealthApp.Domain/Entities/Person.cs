@@ -13,6 +13,10 @@ namespace HealthApp.Domain.Entities
         public double? Height { get; set; }
         public double? Weight { get; set; }
 
+        // Hesap sahibinin kendi profili mi? (onboarding'de oluşturulan profil = true,
+        // uygulamadan eklenen aile üyeleri = false)
+        public bool IsAccountOwner { get; set; } = false;
+
         // Profil arayüzüne eklediğimiz Kronik Hastalıklar ve Alerjiler
         public List<string> ChronicDiseases { get; set; } = new List<string>();
         public List<string> Allergies { get; set; } = new List<string>();

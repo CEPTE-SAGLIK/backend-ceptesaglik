@@ -11,6 +11,7 @@ namespace HealthApp.Business.DTOs
         double? Weight,
         List<string> ChronicDiseases,
         List<string> Allergies,
-        DateTime CreatedAt
+        DateTime CreatedAt,
+        bool IsAccountOwner
     );
 }

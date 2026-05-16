@@ -9,6 +9,7 @@ namespace HealthApp.DataAccess.Repositories
 {
     public interface IReminderRepository : IGenericRepository<Reminder>
     {
-        // Gerekirse buraya özel metodlar eklenebilir (örn: Tarihe göre getir)
+        Task<List<Reminder>> GetByVaccineIdAsync(Guid vaccineId);
+        Task<List<Reminder>> GetByPersonIdAsync(Guid personId);
     }
 }

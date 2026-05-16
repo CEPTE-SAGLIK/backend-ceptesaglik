@@ -8,9 +8,12 @@ namespace HealthApp.Business.DTOs
         public DateTime ReminderDate { get; set; }
         public int Type { get; set; } = 0;
         public int RepeatType { get; set; } = 0;
+        public int AudienceGroup { get; set; } = 0;
+        public DateTime? AudienceBirthDate { get; set; }
         public bool IsActive { get; set; } = true;
         public string? RelatedItemId { get; set; }
         public string? MedicineId { get; set; }
         public string? VaccineId { get; set; }
+        public string? TargetPersonId { get; set; }
     }
 }
