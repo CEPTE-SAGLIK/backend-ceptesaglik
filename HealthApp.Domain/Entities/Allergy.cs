@@ -7,7 +7,8 @@ namespace HealthApp.Domain.Entities
     {
         public Guid PersonId { get; set; }
         public string Name { get; set; }
+        public string? Level { get; set; }
+        public string? Description { get; set; }
         public DateTime CreatedDate { get; set; }
-        // Not: Eğer BaseEntity'nin içinde zaten bir CreatedDate varsa, bu satırın altını çizebilir. Öyle bir durum olursa bu satırı silebilirsin.
     }
 }

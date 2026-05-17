@@ -74,14 +74,29 @@ namespace HealthApp.Business.Services
             }).ToList();
         }
 
-        // IllnessService.cs içine ekle:
         public async Task<bool> DeleteIllnessAsync(Guid id)
         {
-            var illness = await _repository.GetByIdAsync(id); // Önce hastalığı bulalım
+            var illness = await _repository.GetByIdAsync(id);
             if (illness == null) return false;
-
-            await _repository.DeleteAsync(illness); // Tablodan uçuralım
+            await _repository.DeleteAsync(illness);
             return true;
+        }
+
+        public async Task<IllnessDto?> UpdateIllnessAsync(Guid id, IllnessUpdateDto dto)
+        {
+            var illness = await _repository.GetByIdAsync(id);
+            if (illness == null) return null;
+            illness.Name = dto.Name;
+            if (!string.IsNullOrEmpty(dto.Status)) illness.Status = dto.Status;
+            if (!string.IsNullOrEmpty(dto.DoctorNotes)) illness.DoctorNotes = dto.DoctorNotes;
+            if (dto.DiagnosisDate.HasValue) illness.DiagnosisDate = dto.DiagnosisDate.Value;
+            await _repository.UpdateAsync(illness);
+            return new IllnessDto
+            {
+                Id = illness.Id, PersonId = illness.PersonId, Name = illness.Name,
+                DiagnosisDate = illness.DiagnosisDate, Status = illness.Status,
+                DoctorNotes = illness.DoctorNotes
+            };
         }
     }
 }

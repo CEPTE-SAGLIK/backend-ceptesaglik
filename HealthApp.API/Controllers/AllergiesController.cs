@@ -50,7 +50,21 @@ namespace HealthApp.API.Controllers
             return CreatedAtAction(nameof(AddAllergy), new { id = result.Id }, result);
         }
 
-        // 3. Alerji Silme (DELETE) 🗑️
+        // 3. Alerji Güncelleme (PUT)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAllergy(Guid id, [FromBody] AllergyUpdateDto updateDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var result = await _allergyService.UpdateAllergyAsync(id, updateDto);
+            if (result == null)
+                return NotFound(new { message = "Güncellenecek alerji bulunamadı." });
+
+            return Ok(result);
+        }
+
+        // 4. Alerji Silme (DELETE)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAllergy(Guid id)
         {

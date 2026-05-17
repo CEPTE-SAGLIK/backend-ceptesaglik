@@ -49,7 +49,17 @@ namespace HealthApp.API.Controllers
             return CreatedAtAction(nameof(AddIllness), new { id = result.Id }, result);
         }
 
-        // 3. Hastalık Silme (DELETE) - YENİ EKLEDİĞİMİZ KISIM 🗑️
+        // 3. Hastalık Güncelleme (PUT)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateIllness(Guid id, [FromBody] IllnessUpdateDto updateDto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await _illnessService.UpdateIllnessAsync(id, updateDto);
+            if (result == null) return NotFound(new { message = "Güncellenecek hastalık bulunamadı." });
+            return Ok(result);
+        }
+
+        // 4. Hastalık Silme (DELETE)
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteIllness(Guid id)
         {

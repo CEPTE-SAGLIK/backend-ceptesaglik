@@ -75,7 +75,34 @@ namespace HealthApp.Business.Services
             catch (Exception ex) { return Result<bool>.Failure("Silme hatası: " + ex.Message); }
         }
 
-        // 3. Fiziksel Bilgileri Güncelleme (Görseldeki Line 85 hatasını çözer)
+        // 3. Çocuk Tam Güncelleme (isim, doğum tarihi, cinsiyet, boy, kilo)
+        public async Task<Result<ChildDto>> UpdateAsync(Guid id, UpdateChildDto dto)
+        {
+            try
+            {
+                var repo = _unitOfWork.GetRepository<Child>();
+                var child = await repo.GetByIdAsync(id);
+                if (child == null) return Result<ChildDto>.Failure("Çocuk bulunamadı.");
+
+                child.Name = dto.Name;
+
+                if (dto.BirthDate.HasValue)
+                    child.BirthDate = dto.BirthDate.Value;
+
+                if (!string.IsNullOrEmpty(dto.Gender) && Enum.TryParse<Gender>(dto.Gender, true, out var genderEnum))
+                    child.Gender = genderEnum;
+
+                if (dto.Height.HasValue) child.Height = dto.Height.Value;
+                if (dto.Weight.HasValue) child.Weight = dto.Weight.Value;
+
+                await repo.UpdateAsync(child);
+                await _unitOfWork.SaveChangesAsync();
+                return Result<ChildDto>.Success(_mapper.Map<ChildDto>(child));
+            }
+            catch (Exception ex) { return Result<ChildDto>.Failure(ex.Message); }
+        }
+
+        // 4. Fiziksel Bilgileri Güncelleme (geriye dönük uyumluluk)
         public async Task<Result<ChildDto>> UpdatePhysicalInfoAsync(Guid id, double height, double weight, string gender)
         {
             try

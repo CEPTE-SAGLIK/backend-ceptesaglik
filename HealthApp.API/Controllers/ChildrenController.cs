@@ -102,6 +102,14 @@ namespace HealthApp.API.Controllers
             return result.IsSuccess ? Ok(ApiResponse<List<ChildDto>>.Ok(result.Data!)) : BadRequest(ApiResponse<object>.Fail(result.ErrorMessage!));
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateChildDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ApiResponse<object>.Fail("Geçersiz istek."));
+            var result = await _childService.UpdateAsync(id, dto);
+            return result.IsSuccess ? Ok(ApiResponse<ChildDto>.Ok(result.Data!)) : BadRequest(ApiResponse<object>.Fail(result.ErrorMessage!));
+        }
+
         [HttpPut("{id}/physical-info")]
         public async Task<IActionResult> UpdatePhysical(Guid id, [FromBody] ChildDto updateDto)
         {
