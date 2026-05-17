@@ -15,6 +15,10 @@ namespace HealthApp.Domain.Entities
         public DateTime ReminderDate { get; set; }
         public ReminderType Type { get; set; }
         public RepeatType RepeatType { get; set; } = RepeatType.None;
+        public AudienceGroup AudienceGroup { get; set; } = AudienceGroup.Adult;
+        // Hedef kişinin doğum tarihi — yaş grubu bundan dinamik hesaplanır (snapshot değil).
+        // Null ise AudienceGroup alanına geri düşülür.
+        public DateTime? AudienceBirthDate { get; set; }
         public bool IsCompleted { get; set; } = false;
         public bool IsActive { get; set; } = true;
 
@@ -27,6 +31,9 @@ namespace HealthApp.Domain.Entities
         public Guid? VaccineId { get; set; }
         [ForeignKey("VaccineId")]
         public virtual Vaccine? Vaccine { get; set; }
+
+        // Hangi aile üyesine ait (null = hesap sahibinin kendisi)
+        public Guid? PersonId { get; set; }
 
         public string? RelatedItemId { get; set; }
     }
@@ -46,5 +53,13 @@ namespace HealthApp.Domain.Entities
         Daily = 1,
         Weekly = 2,
         Monthly = 3
+    }
+
+    // Hatırlatıcının hedef yaş grubu (yetişkin / yaşlı / çocuk).
+    public enum AudienceGroup
+    {
+        Adult = 0,
+        Elderly = 1,
+        Child = 2
     }
 }

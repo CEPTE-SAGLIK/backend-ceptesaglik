@@ -12,10 +12,13 @@ namespace HealthApp.Business.DTOs
         // Lowercase string names matching Flutter's ReminderType / RepeatType enum names
         public string Type { get; set; } = "custom";
         public string RepeatType { get; set; } = "none";
+        public string AudienceGroup { get; set; } = "adult";
+        public string? AudienceBirthDate { get; set; }
         public bool IsActive { get; set; } = true;
         public bool IsCompleted { get; set; } = false;
         public string? RelatedItemId { get; set; }
         public string? MedicineId { get; set; }
         public string? VaccineId { get; set; }
+        public string? TargetPersonId { get; set; }
     }
 }

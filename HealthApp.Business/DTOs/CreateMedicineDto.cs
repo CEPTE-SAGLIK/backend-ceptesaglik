@@ -18,5 +18,8 @@ namespace HealthApp.Business.DTOs
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public int RepeatType { get; set; }
+        public int AudienceGroup { get; set; } = 0;
+        public DateTime? AudienceBirthDate { get; set; }
+        public Guid? PersonId { get; set; }
     }
 }

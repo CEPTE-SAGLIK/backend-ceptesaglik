@@ -38,10 +38,10 @@ namespace HealthApp.WebAPI.Controllers
                                 .Where(x => x.UserId.ToString().ToLower() == userIdStr)
                                 .ToList();
 
-                var childrenIds = (await _unitOfWork.GetRepository<Child>().GetAllAsync())
-                                 .Where(c => c.UserId.ToString().ToLower() == userIdStr)
-                                 .Select(c => c.Id)
-                                 .ToList();
+                var children = (await _unitOfWork.GetRepository<Child>().GetAllAsync())
+                               .Where(c => c.UserId.ToString().ToLower() == userIdStr)
+                               .ToList();
+                var childrenIds = children.Select(c => c.Id).ToList();
 
                 var medicines = (await _unitOfWork.GetRepository<Medicine>().GetAllAsync())
                                 .Where(x => x.UserId.ToString().ToLower() == userIdStr)
@@ -55,10 +55,19 @@ namespace HealthApp.WebAPI.Controllers
                 {
                     if (!reminders.Any(r => r.MedicineId == med.Id))
                     {
-                        var today = DateTime.UtcNow.Date;
-                        var reminderTime = today;
+                        var baseDate = med.StartDate.Date;
+                        var reminderTime = baseDate;
                         if (!string.IsNullOrEmpty(med.Time) && TimeSpan.TryParse(med.Time, out var ts))
-                            reminderTime = today.Add(ts);
+                            reminderTime = baseDate.Add(ts);
+
+                        // Frequency string'inden tekrar tipini türet
+                        var medRepeatType = med.Frequency switch
+                        {
+                            "Tek Seferlik" => RepeatType.None,
+                            "Haftada Bir"  => RepeatType.Weekly,
+                            "Aylık"        => RepeatType.Monthly,
+                            _              => RepeatType.Daily,
+                        };
 
                         reminders.Add(new Reminder
                         {
@@ -67,7 +76,9 @@ namespace HealthApp.WebAPI.Controllers
                             Description = med.UsageInstructions ?? "İlaç Hatırlatıcısı",
                             Type = ReminderType.Medicine,
                             ReminderDate = reminderTime,
-                            RepeatType = RepeatType.Daily,
+                            RepeatType = medRepeatType,
+                            AudienceGroup = med.AudienceGroup,
+                            AudienceBirthDate = med.AudienceBirthDate,
                             UserId = userId,
                             IsActive = true,
                             MedicineId = med.Id
@@ -79,6 +90,7 @@ namespace HealthApp.WebAPI.Controllers
                 {
                     if (!reminders.Any(r => r.VaccineId == vac.Id))
                     {
+                        var vacChild = children.FirstOrDefault(c => c.Id == vac.ChildId);
                         reminders.Add(new Reminder
                         {
                             Id = vac.Id,
@@ -86,6 +98,8 @@ namespace HealthApp.WebAPI.Controllers
                             Description = vac.Dose ?? "Aşı Takvimi",
                             Type = ReminderType.Vaccine,
                             ReminderDate = vac.Date,
+                            AudienceGroup = AudienceGroup.Child,
+                            AudienceBirthDate = vacChild?.BirthDate,
                             UserId = userId,
                             IsActive = true,
                             IsCompleted = vac.Status.ToString() == "Tamamlandı",
@@ -127,10 +141,13 @@ namespace HealthApp.WebAPI.Controllers
                     ReminderDate = dto.ReminderDate,
                     Type = (ReminderType)dto.Type,
                     RepeatType = (RepeatType)dto.RepeatType,
+                    AudienceGroup = (AudienceGroup)dto.AudienceGroup,
+                    AudienceBirthDate = dto.AudienceBirthDate,
                     IsActive = dto.IsActive,
                     RelatedItemId = dto.RelatedItemId,
                     MedicineId = Guid.TryParse(dto.MedicineId, out var mid) ? mid : (Guid?)null,
                     VaccineId = Guid.TryParse(dto.VaccineId, out var vid) ? vid : (Guid?)null,
+                    PersonId = Guid.TryParse(dto.TargetPersonId, out var pid) ? pid : (Guid?)null,
                 };
 
                 await _repository.AddAsync(reminder);
@@ -159,6 +176,8 @@ namespace HealthApp.WebAPI.Controllers
             reminder.ReminderDate = dto.ReminderDate;
             reminder.Type = (ReminderType)dto.Type;
             reminder.RepeatType = (RepeatType)dto.RepeatType;
+            reminder.AudienceGroup = (AudienceGroup)dto.AudienceGroup;
+            reminder.AudienceBirthDate = dto.AudienceBirthDate;
             reminder.IsActive = dto.IsActive;
             reminder.RelatedItemId = dto.RelatedItemId;
             reminder.UpdatedAt = DateTime.UtcNow;
@@ -249,11 +268,33 @@ namespace HealthApp.WebAPI.Controllers
                 Domain.Entities.RepeatType.Monthly => "monthly",
                 _ => "none"
             },
+            AudienceGroup = DeriveAudience(r.AudienceBirthDate, r.AudienceGroup) switch
+            {
+                Domain.Entities.AudienceGroup.Elderly => "elderly",
+                Domain.Entities.AudienceGroup.Child => "child",
+                _ => "adult"
+            },
+            AudienceBirthDate = r.AudienceBirthDate?.ToString("o"),
             IsActive = r.IsActive,
             IsCompleted = r.IsCompleted,
             RelatedItemId = r.RelatedItemId,
             MedicineId = r.MedicineId?.ToString(),
-            VaccineId = r.VaccineId?.ToString()
+            VaccineId = r.VaccineId?.ToString(),
+            TargetPersonId = r.PersonId?.ToString()
         };
+
+        // Doğum tarihinden yaş grubunu dinamik hesaplar; tarih yoksa kayıtlı gruba düşer.
+        // Eşikler: çocuk < 18, yaşlı >= 65, arası yetişkin.
+        private static AudienceGroup DeriveAudience(DateTime? birthDate, AudienceGroup fallback)
+        {
+            if (birthDate == null) return fallback;
+            var today = DateTime.UtcNow.Date;
+            var bd = birthDate.Value.Date;
+            var age = today.Year - bd.Year;
+            if (bd > today.AddYears(-age)) age--;
+            if (age < 18) return AudienceGroup.Child;
+            if (age >= 65) return AudienceGroup.Elderly;
+            return AudienceGroup.Adult;
+        }
     }
 }

@@ -31,6 +31,7 @@ builder.Services.AddScoped<ChildRepository>();
 builder.Services.AddScoped<AllergyRepository>();
 builder.Services.AddScoped<IllnessRepository>();
 builder.Services.AddScoped<NotificationRepository>();
+builder.Services.AddScoped<MedicineRepository>();
 
 // SERVICES
 builder.Services.AddScoped<UserService>();

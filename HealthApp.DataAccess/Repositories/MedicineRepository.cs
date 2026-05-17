@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HealthApp.DataAccess.Context;
+﻿using HealthApp.DataAccess.Context;
 using HealthApp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthApp.DataAccess.Repositories
 {
@@ -12,6 +8,11 @@ namespace HealthApp.DataAccess.Repositories
     {
         public MedicineRepository(AppDbContext context) : base(context)
         {
+        }
+
+        public async Task<List<Medicine>> GetByPersonIdAsync(Guid personId)
+        {
+            return await _dbSet.Where(m => m.PersonId == personId).ToListAsync();
         }
     }
 }

@@ -8,17 +8,47 @@ namespace HealthApp.Business.Services
     public class PersonService
     {
         private readonly PersonRepository _personRepository;
+        private readonly AllergyRepository _allergyRepository;
+        private readonly IllnessRepository _illnessRepository;
+        private readonly VaccineRepository _vaccineRepository;
+        private readonly NotificationRepository _notificationRepository;
+        private readonly IReminderRepository _reminderRepository;
+        private readonly MedicineRepository _medicineRepository;
 
-        public PersonService(PersonRepository personRepository)
+        public PersonService(
+            PersonRepository personRepository,
+            AllergyRepository allergyRepository,
+            IllnessRepository illnessRepository,
+            VaccineRepository vaccineRepository,
+            NotificationRepository notificationRepository,
+            IReminderRepository reminderRepository,
+            MedicineRepository medicineRepository)
         {
             _personRepository = personRepository;
+            _allergyRepository = allergyRepository;
+            _illnessRepository = illnessRepository;
+            _vaccineRepository = vaccineRepository;
+            _notificationRepository = notificationRepository;
+            _reminderRepository = reminderRepository;
+            _medicineRepository = medicineRepository;
         }
 
-        public async Task<PersonDto> CreatePersonAsync(PersonCreateDTO dto, Guid userId)
+        public async Task<PersonDto> CreatePersonAsync(PersonCreateDTO dto, Guid userId, bool isAccountOwner = false)
         {
             if (!Enum.TryParse<Gender>(dto.Gender, true, out var gender))
             {
                 throw new Exception("Geçersiz cinsiyet değeri. male/female gönderin.");
+            }
+
+            // Her hesapta en fazla bir kayıt sahibi profili olabilir.
+            var owner = isAccountOwner;
+            if (owner)
+            {
+                var existing = await _personRepository.GetByUserIdAsync(userId);
+                if (existing.Any(p => p.IsAccountOwner))
+                {
+                    owner = false;
+                }
             }
 
             var person = new Person
@@ -31,7 +61,8 @@ namespace HealthApp.Business.Services
                 Height = dto.Height,
                 Weight = dto.Weight,
                 ChronicDiseases = dto.ChronicDiseases ?? new List<string>(),
-                Allergies = dto.Allergies ?? new List<string>()
+                Allergies = dto.Allergies ?? new List<string>(),
+                IsAccountOwner = owner
             };
 
             var created = await _personRepository.AddAsync(person);
@@ -84,6 +115,55 @@ namespace HealthApp.Business.Services
             return MapToDto(person);
         }
 
+        public async Task DeletePersonAsync(Guid personId, Guid userId)
+        {
+            var person = await _personRepository.GetByIdAndUserIdAsync(personId, userId);
+            if (person == null)
+            {
+                throw new Exception("Kayıt bulunamadı veya bu kullanıcıya ait değil.");
+            }
+            if (person.IsAccountOwner)
+            {
+                throw new Exception("Hesap sahibinin profili silinemez.");
+            }
+
+            // İlişkili kayıtları FK sırasına göre temizle.
+
+            // Direkt PersonId ile bağlı hatırlatıcıları sil.
+            var directReminders = await _reminderRepository.GetByPersonIdAsync(personId);
+            foreach (var r in directReminders) await _reminderRepository.DeleteAsync(r);
+
+            // İlaçları ve onlara bağlı hatırlatıcıları sil.
+            var medicines = await _medicineRepository.GetByPersonIdAsync(personId);
+            foreach (var m in medicines)
+            {
+                var medReminders = (await _reminderRepository.GetAllAsync())
+                    .Where(r => r.MedicineId == m.Id).ToList();
+                foreach (var r in medReminders) await _reminderRepository.DeleteAsync(r);
+                await _medicineRepository.DeleteAsync(m);
+            }
+
+            var allergies = await _allergyRepository.GetByPersonIdAsync(personId);
+            foreach (var a in allergies) await _allergyRepository.DeleteAsync(a);
+
+            var illnesses = await _illnessRepository.GetByPersonIdAsync(personId);
+            foreach (var i in illnesses) await _illnessRepository.DeleteAsync(i);
+
+            var notifications = await _notificationRepository.GetByPersonIdAsync(personId);
+            foreach (var n in notifications) await _notificationRepository.DeleteAsync(n);
+
+            // Aşılara bağlı hatırlatıcıları önce sil, sonra aşıları sil.
+            var vaccines = await _vaccineRepository.GetByPersonIdAsync(personId);
+            foreach (var v in vaccines)
+            {
+                var reminders = await _reminderRepository.GetByVaccineIdAsync(v.Id);
+                foreach (var r in reminders) await _reminderRepository.DeleteAsync(r);
+                await _vaccineRepository.DeleteAsync(v);
+            }
+
+            await _personRepository.DeleteAsync(person);
+        }
+
         private static PersonDto MapToDto(Person person)
         {
             return new PersonDto(
@@ -97,7 +177,8 @@ namespace HealthApp.Business.Services
                 person.Weight,
                 person.ChronicDiseases,
                 person.Allergies,
-                person.CreatedAt
+                person.CreatedAt,
+                person.IsAccountOwner
             );
         }
     }

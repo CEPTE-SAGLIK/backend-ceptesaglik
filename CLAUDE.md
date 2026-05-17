@@ -38,7 +38,7 @@ Clean architecture split across four projects:
 - **DTO boundary**: Entities never leave the service layer — controllers receive/return DTOs only.
 - **Two-token auth**: Access token (60 min) + Refresh token (7 days, stored in `User.RefreshToken`). `JwtService` generates both; `AuthService` validates and rotates the refresh token.
 - **AutoMapper**: Single `MappingProfile` in `HealthApp.Business`. All entity↔DTO maps are defined there.
-- **BaseEntity**: All entities inherit `Id` (int PK) and `UpdatedAt` (auto-set on save).
+- **BaseEntity**: All entities inherit `Id` (`Guid`, defaults to `Guid.NewGuid()`), `CreatedAt`, and nullable `UpdatedAt`.
 
 ## Tech Stack
 
@@ -52,11 +52,12 @@ Clean architecture split across four projects:
 
 ## Domain Model Highlights
 
-- `User` (1:1) `Person` — registration creates both; `Person` holds health data (height, weight, gender, birth date).
-- `Child` (1:N) `VaccineSchedule` (1:N) `Vaccine` — `VaccineScheduleGenerator` auto-creates schedules on child creation.
+- `User` (1:N) `Person` — `AuthService` registration creates only the `User`. Each user has one account-owner profile (`Person.IsAccountOwner = true`, created via `POST /api/Persons/profile` during onboarding) plus optional family-member profiles. `Person` holds health data (name, surname, birth date, gender, height, weight).
+- `Child` (1:N) `VaccineSchedule` (1:N) `Vaccine` — `VaccineScheduleGenerator` auto-creates schedules on child creation. A `Vaccine` may instead link directly to a `Person` (adult/elderly vaccines).
 - `Medicine` (1:N) `Reminder` and (1:N) `MedicineReminderTime`.
 - `Reminder` references `User`, optional `Medicine`, optional `Vaccine` — FK deletes use `NoAction` to avoid cycles.
-- `VaccineStatus` enum: `Pending`, `Completed`, `Missed`, `Delayed`.
+- Age-group targeting: `Medicine` and `Reminder` carry `AudienceGroup` (`Adult`/`Elderly`/`Child`), `AudienceBirthDate`, and optional `PersonId` (which family member). The `AudienceGroup`, `ReminderType`, and `RepeatType` enums are declared inline in `Reminder.cs` — the `RepeatType.cs` and `FrequencyType.cs` files in `Enums/` are empty placeholders.
+- `VaccineStatus` enum: `Pending`, `Completed`, `Overdue`, `Skipped`.
 
 ## Documentation
 

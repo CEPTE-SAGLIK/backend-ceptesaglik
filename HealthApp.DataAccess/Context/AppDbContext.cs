@@ -1,4 +1,4 @@
-﻿using HealthApp.Domain.Entities;
+using HealthApp.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -49,8 +49,9 @@ namespace HealthApp.DataAccess.Context
                 .HasForeignKey(r => r.MedicineId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // 3. Person - Vaccine İlişkisi (HATA BURADAYDI - DÜZELTİLDİ)
-            // SQL Server çakışmayı önlemek için burada Cascade yerine NoAction kullanmalıyız.
+            // 3. Person - Vaccine İlişkisi (Yetişkin Aşıları - Çoklu Cascade Çözümü)
+            // SQL Server'da çakışmayı (multiple cascade paths) önlemek amacıyla Cascade yerine NoAction kullanılmıştır.
+            // Vaccines tablosunda VaccineSchedule üzerinden zaten etkin bir cascade yolu bulunmaktadır.
             modelBuilder.Entity<Vaccine>()
                 .HasOne(v => v.Person)
                 .WithMany(p => p.Vaccines)

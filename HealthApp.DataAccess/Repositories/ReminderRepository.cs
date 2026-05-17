@@ -1,10 +1,6 @@
 ﻿using HealthApp.DataAccess.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using HealthApp.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace HealthApp.DataAccess.Repositories
 {
@@ -12,6 +8,16 @@ namespace HealthApp.DataAccess.Repositories
     {
         public ReminderRepository(AppDbContext context) : base(context)
         {
+        }
+
+        public async Task<List<Reminder>> GetByVaccineIdAsync(Guid vaccineId)
+        {
+            return await _dbSet.Where(r => r.VaccineId == vaccineId).ToListAsync();
+        }
+
+        public async Task<List<Reminder>> GetByPersonIdAsync(Guid personId)
+        {
+            return await _dbSet.Where(r => r.PersonId == personId).ToListAsync();
         }
     }
 }
